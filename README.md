@@ -2,8 +2,11 @@
 一个简单的Recyclerview库，下拉刷新、自动刷新、上拉加载、可添加Header、Footer、EmptyView，支持点击、长按、创建上下文菜单事件，支持List集合和数据库Cursor两种模式
 
 > YRecyclerView 基类
+
 > LoadRecyclerView 可上拉加载的RecyclerView
+
 > YSwipeRefreshLayout 可自动刷新的SwipeRefreshLayout
+
 > LoadOrRefreshView 可下拉刷新、自动刷新、上拉加载
 
 效果图：
