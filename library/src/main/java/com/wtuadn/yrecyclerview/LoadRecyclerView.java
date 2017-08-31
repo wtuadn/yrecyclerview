@@ -4,15 +4,12 @@ import android.content.Context;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.view.View;
-import android.widget.ImageView;
 
 /**
  * Created by wtuadn on 15-12-29.
  */
 public class LoadRecyclerView extends YRecyclerView {
-    private ImageView progressView;
-    private MaterialProgressDrawable progressDrawable;
+    private MaterialProgressView progressView;
     private boolean canLoad = false;//能否上拉加载
     private boolean disableLoad = false;//彻底关闭上拉加载功能
     private boolean isLoading;
@@ -30,7 +27,6 @@ public class LoadRecyclerView extends YRecyclerView {
     public void setDisableLoad(boolean disableLoad) {
         this.disableLoad = disableLoad;
         if (disableLoad) {
-            progressDrawable.stop();
             progressView.setVisibility(GONE);
         }
     }
@@ -43,9 +39,7 @@ public class LoadRecyclerView extends YRecyclerView {
         if (this.canLoad != mCanLoad) {
             if (mCanLoad && isLoading && !disableLoad) {
                 progressView.setVisibility(VISIBLE);
-                if (!progressDrawable.isRunning()) progressDrawable.start();
             } else {
-                progressDrawable.stop();
                 progressView.setVisibility(GONE);
             }
             this.canLoad = mCanLoad;
@@ -57,7 +51,7 @@ public class LoadRecyclerView extends YRecyclerView {
     }
 
     public void setColorSchemeColors(int... colors) {
-        progressDrawable.setColorSchemeColors(colors);
+        progressView.getProgressDrawable().setColorSchemeColors(colors);
     }
 
     public LoadRecyclerView(Context context) {
@@ -76,32 +70,7 @@ public class LoadRecyclerView extends YRecyclerView {
     }
 
     private void initProgressBar() {
-        progressView = new ImageView(getContext()) {
-            @Override
-            protected void onVisibilityChanged(View changedView, int visibility) {
-                super.onVisibilityChanged(changedView, visibility);
-                if (visibility == VISIBLE && !progressDrawable.isRunning()) {
-                    progressDrawable.start();
-                } else {
-                    progressDrawable.stop();
-                }
-            }
-
-            @Override
-            protected void onDetachedFromWindow() {
-                super.onDetachedFromWindow();
-                progressDrawable.stop();
-            }
-        };
-        progressView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        progressDrawable = new MaterialProgressDrawable(getContext(), progressView);
-        progressDrawable.setColorSchemeColors(0xffff9500);
-        progressDrawable.updateSizes(MaterialProgressDrawable.LARGE);
-        progressDrawable.setProgressRotation(1f);
-        progressDrawable.setStartEndTrim(0f, 0.9f);
-        progressDrawable.showArrow(false);
-        progressDrawable.setAlpha(255);
-        progressView.setImageDrawable(progressDrawable);
+        progressView = new MaterialProgressView(getContext());
         progressView.setVisibility(GONE);
     }
 
