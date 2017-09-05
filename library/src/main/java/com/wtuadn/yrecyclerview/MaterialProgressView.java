@@ -34,8 +34,8 @@ public class MaterialProgressView extends ImageView {
 
     @Override
     protected void onVisibilityChanged(View changedView, int visibility) {
-        if (isShown() && !progressDrawable.isRunning()) {
-            progressDrawable.start();
+        if (isShown()) {
+            if (!progressDrawable.isRunning()) progressDrawable.start();
         } else {
             progressDrawable.stop();
         }
