@@ -33,6 +33,6 @@ Add it in your root build.gradle at the end of repositories:
 Step 2. Add the dependency:
 ```gradle
 	dependencies {
-	        compile 'com.github.wtuadn:yrecyclerview:v1.0.2'
+	        compile 'com.github.wtuadn:yrecyclerview:v1.0.3'
 	}
 ```
