@@ -1,6 +1,7 @@
 package com.wtuadn.yrecyclerview;
 
 import android.content.Context;
+import android.support.v4.widget.CircularProgressDrawable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
@@ -8,25 +9,25 @@ import android.widget.ImageView;
 /**
  * Created by wtuadn on 2017/8/31.
  */
-public class MaterialProgressView extends ImageView {
-    private MaterialProgressDrawable progressDrawable;
+public class CircularProgressView extends ImageView {
+    private CircularProgressDrawable progressDrawable;
 
-    public MaterialProgressDrawable getProgressDrawable() {
+    public CircularProgressDrawable getProgressDrawable() {
         return progressDrawable;
     }
 
-    public MaterialProgressView(Context context) {
+    public CircularProgressView(Context context) {
         this(context, null);
     }
 
-    public MaterialProgressView(Context context, AttributeSet attrs) {
+    public CircularProgressView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        progressDrawable = new MaterialProgressDrawable(getContext(), this);
-        progressDrawable.setColorSchemeColors(0xffff9500);
-        progressDrawable.updateSizes(MaterialProgressDrawable.LARGE);
+        progressDrawable = new CircularProgressDrawable(getContext());
+        progressDrawable.setColorSchemeColors(0xfff40050);
+        progressDrawable.setStyle(CircularProgressDrawable.LARGE);
         progressDrawable.setProgressRotation(1f);
         progressDrawable.setStartEndTrim(0f, 0.9f);
-        progressDrawable.showArrow(false);
+        progressDrawable.setArrowEnabled(false);
         progressDrawable.setAlpha(255);
         setImageDrawable(progressDrawable);
         setScaleType(ScaleType.CENTER_INSIDE);

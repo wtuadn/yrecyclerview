@@ -4,12 +4,14 @@ import android.content.Context;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.TypedValue;
+import android.widget.FrameLayout;
 
 /**
  * Created by wtuadn on 15-12-29.
  */
 public class LoadRecyclerView extends YRecyclerView {
-    private MaterialProgressView progressView;
+    private CircularProgressView progressView;
     private boolean canLoad = false;//能否上拉加载
     private boolean disableLoad = false;//彻底关闭上拉加载功能
     private boolean isLoading;
@@ -22,6 +24,10 @@ public class LoadRecyclerView extends YRecyclerView {
 
     public boolean isLoading() {
         return isLoading;
+    }
+
+    public CircularProgressView getProgressView() {
+        return progressView;
     }
 
     public void setDisableLoad(boolean disableLoad) {
@@ -70,7 +76,9 @@ public class LoadRecyclerView extends YRecyclerView {
     }
 
     private void initProgressBar() {
-        progressView = new MaterialProgressView(getContext());
+        progressView = new CircularProgressView(getContext());
+        int minHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, getResources().getDisplayMetrics());
+        progressView.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, minHeight));
         progressView.setVisibility(GONE);
     }
 
