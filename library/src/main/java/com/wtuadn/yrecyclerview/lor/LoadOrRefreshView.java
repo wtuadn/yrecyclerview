@@ -1,6 +1,8 @@
 package com.wtuadn.yrecyclerview.lor;
 
 import android.content.Context;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 
@@ -16,6 +18,11 @@ public class LoadOrRefreshView extends YSwipeRefreshLayout implements LoadRecycl
     private OnLORListener onLORListener;
     private boolean isRefreshing;
     private boolean isLoading;
+    private int extraLayoutSpace;
+
+    public void setExtraLayoutSpace(int extraLayoutSpace) {
+        this.extraLayoutSpace = extraLayoutSpace;
+    }
 
     public void setOnLORListener(OnLORListener onLORListener) {
         this.onLORListener = onLORListener;
@@ -38,6 +45,7 @@ public class LoadOrRefreshView extends YSwipeRefreshLayout implements LoadRecycl
         loadRecyclerView = new LoadRecyclerView(getContext());
         loadRecyclerView.setHasFixedSize(true);
         loadRecyclerView.setLoadListener(this);
+        loadRecyclerView.setLayoutManager(new ExtraLinearLayoutManager(getContext()));
         setOnRefreshListener(this);
         addView(loadRecyclerView, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -66,7 +74,7 @@ public class LoadOrRefreshView extends YSwipeRefreshLayout implements LoadRecycl
     public void refreshFinish() {
         if (isRefreshing) {
             super.refreshFinish();
-            loadRecyclerView.setCanLoad(true);
+            loadRecyclerView.setDisableLoad(false);
             isRefreshing = false;
         }
     }
@@ -83,7 +91,7 @@ public class LoadOrRefreshView extends YSwipeRefreshLayout implements LoadRecycl
     @Override
     public void onRefresh() {
         isRefreshing = true;
-        loadRecyclerView.setCanLoad(false);
+        loadRecyclerView.setDisableLoad(true);
         if (onLORListener != null) {
             onLORListener.onRefresh(this);
         }
@@ -91,7 +99,18 @@ public class LoadOrRefreshView extends YSwipeRefreshLayout implements LoadRecycl
 
     public void disable() {
         setEnabled(false);
-        loadRecyclerView.setDisableLoad(false);
+        loadRecyclerView.setDisableLoad(true);
+    }
+
+    private class ExtraLinearLayoutManager extends LinearLayoutManager {
+        private ExtraLinearLayoutManager(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected int getExtraLayoutSpace(RecyclerView.State state) {
+            return super.getExtraLayoutSpace(state) + extraLayoutSpace;
+        }
     }
 
     public interface OnLORListener {

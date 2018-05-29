@@ -1,11 +1,13 @@
 package com.wtuadn.yrecyclerview;
 
+import android.support.v7.widget.RecyclerView;
+
 import java.util.List;
 
 /**
  * Created by wtuadn on 15-12-28.
  */
-public abstract class RecyclerListAdapter<T> extends RecyclerAdapter {
+public abstract class RecyclerListAdapter<T, VH extends RecyclerView.ViewHolder> extends RecyclerAdapter<T, VH>  {
     public List<T> lists;
 
     public RecyclerListAdapter(List<T> lists) {

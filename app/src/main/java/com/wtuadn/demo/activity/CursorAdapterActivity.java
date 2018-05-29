@@ -2,8 +2,9 @@ package com.wtuadn.demo.activity;
 
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
@@ -42,7 +43,7 @@ public class CursorAdapterActivity extends AppCompatActivity {
     }
 
     private void initToolbar() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.app_name);
         toolbar.getMenu().add(0, 0, 0, "添加header").setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
         toolbar.getMenu().add(0, 1, 0, "删除header").setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
@@ -78,9 +79,9 @@ public class CursorAdapterActivity extends AppCompatActivity {
     }
 
     private void initRV() {
-        recyclerView = (YRecyclerView) findViewById(R.id.recyclerView);
+        recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         myAdapter = new MyAdapter();
         recyclerView.setAdapter(myAdapter);
 
@@ -107,20 +108,17 @@ public class CursorAdapterActivity extends AppCompatActivity {
         recyclerView.setRecyclerItemListener(recyclerItemListener);
     }
 
-    private class MyAdapter extends RecyclerCursorAdapter<GoodsBean> {
+    private class MyAdapter extends RecyclerCursorAdapter<GoodsBean, MyAdapter.Holder> {
 
         public MyAdapter() {
             Cursor cursor = dbHelper.getReadableDatabase().rawQuery("select id, name from goods order by id asc", null);
             changeCursor(cursor);
         }
 
+        @NonNull
         @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            RecyclerView.ViewHolder vh = super.onCreateViewHolder(parent, viewType);
-            if (vh == null) {
-                vh = new Holdler(new Button(parent.getContext()));
-            }
-            return vh;
+        protected Holder onCreateNormalViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new Holder(new Button(parent.getContext()));
         }
 
         @Override
@@ -134,22 +132,18 @@ public class CursorAdapterActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
-            super.onBindViewHolder(viewHolder, position);
-            if (viewHolder instanceof Holdler) {
-                final Holdler holdler = (Holdler) viewHolder;
-                final GoodsBean bean = getItem(position);
-                holdler.button.setText(bean.getName());
-                //甚至可以直接
-                //holdler.button.setText(mCursor.getString(1));
-                //省掉在滑动时GoodsBean无限的创建，更加流畅，轻松支持1W级别的数据库
-            }
+        public void onBindNormalViewHolder(@NonNull Holder viewHolder, int position) {
+            final GoodsBean bean = getItem(position);
+            viewHolder.button.setText(bean.getName());
+            //甚至可以直接
+            //holdler.button.setText(mCursor.getString(1));
+            //省掉在滑动时GoodsBean无限的创建，更加流畅，轻松支持1W级别的数据库
         }
 
-        private class Holdler extends RecyclerView.ViewHolder {
+        class Holder extends RecyclerView.ViewHolder {
             private Button button;
 
-            public Holdler(Button itemView) {
+            Holder(Button itemView) {
                 super(itemView);
                 button = itemView;
             }

@@ -1,11 +1,13 @@
 package com.wtuadn.yrecyclerview;
 
 import android.content.Context;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 import android.util.TypedValue;
-import android.widget.FrameLayout;
+import android.view.ViewGroup;
 
 /**
  * Created by wtuadn on 15-12-29.
@@ -16,11 +18,7 @@ public class LoadRecyclerView extends YRecyclerView {
     private boolean disableLoad = false;//彻底关闭上拉加载功能
     private boolean isLoading;
     private OnLoadListener onLoadListener;
-    private int extraLayoutSpace;
-
-    public void setExtraLayoutSpace(int extraLayoutSpace) {
-        this.extraLayoutSpace = extraLayoutSpace;
-    }
+    private int[] colors;
 
     public boolean isLoading() {
         return isLoading;
@@ -33,7 +31,7 @@ public class LoadRecyclerView extends YRecyclerView {
     public void setDisableLoad(boolean disableLoad) {
         this.disableLoad = disableLoad;
         if (disableLoad) {
-            progressView.setVisibility(GONE);
+//            hideProgress();
         }
     }
 
@@ -42,14 +40,9 @@ public class LoadRecyclerView extends YRecyclerView {
     }
 
     public void setCanLoad(boolean mCanLoad) {
-        if (this.canLoad != mCanLoad) {
-            if (mCanLoad && isLoading && !disableLoad) {
-                progressView.setVisibility(VISIBLE);
-            } else {
-                progressView.setVisibility(GONE);
-            }
-            this.canLoad = mCanLoad;
-        }
+        this.canLoad = mCanLoad;
+        if (canLoad) showProgress();
+        else hideProgress();
     }
 
     public void setLoadListener(OnLoadListener onLoadListener) {
@@ -57,7 +50,7 @@ public class LoadRecyclerView extends YRecyclerView {
     }
 
     public void setColorSchemeColors(int... colors) {
-        progressView.getProgressDrawable().setColorSchemeColors(colors);
+        this.colors = colors;
     }
 
     public LoadRecyclerView(Context context) {
@@ -66,20 +59,7 @@ public class LoadRecyclerView extends YRecyclerView {
 
     public LoadRecyclerView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
-    }
-
-    private void init() {
         addOnScrollListener(new LoadOnScrollListener());
-        setLayoutManager(new ExtraLinearLayoutManager(getContext()));
-        initProgressBar();
-    }
-
-    private void initProgressBar() {
-        progressView = new CircularProgressView(getContext());
-        int minHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, getResources().getDisplayMetrics());
-        progressView.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, minHeight));
-        progressView.setVisibility(GONE);
     }
 
     public void loadFinish() {
@@ -89,23 +69,55 @@ public class LoadRecyclerView extends YRecyclerView {
     }
 
     @Override
-    public void setAdapter(RecyclerView.Adapter adapter) {
-        if (adapter instanceof RecyclerAdapter) {
-            super.setAdapter(adapter);
-            ((RecyclerAdapter) adapter).removeFooterView(progressView);
-            ((RecyclerAdapter) adapter).addFooterView(progressView);
-        } else {
-            throw new RuntimeException("Unsupported Adapter used. Valid one is RecyclerAdapter！");
+    public void setLayoutManager(final RecyclerView.LayoutManager layoutManager) {
+        if (layoutManager instanceof GridLayoutManager) {
+            final GridLayoutManager gridLayoutManager = (GridLayoutManager) layoutManager;
+            final GridLayoutManager.SpanSizeLookup oldLookup = gridLayoutManager.getSpanSizeLookup();
+            gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    RecyclerAdapter adapter = (RecyclerAdapter) getAdapter();
+                    if (position < adapter.headerSize || position >= adapter.headerSize + adapter.getNormalItemCount()) {
+                        return gridLayoutManager.getSpanCount();
+                    } else if (oldLookup != null) {
+                        return oldLookup.getSpanSize(position);
+                    }
+                    return 1;
+                }
+            });
+            gridLayoutManager.setSpanCount(gridLayoutManager.getSpanCount());
+            super.setLayoutManager(layoutManager);
+        } else if (layoutManager instanceof StaggeredGridLayoutManager) {
+
+        }
+        super.setLayoutManager(layoutManager);
+    }
+
+    private void showProgress() {
+        if (progressView == null) {
+            progressView = new CircularProgressView(getContext());
+            progressView.setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
+        if (colors != null) progressView.getProgressDrawable().setColorSchemeColors(colors);
+        RecyclerAdapter adapter = (RecyclerAdapter) getAdapter();
+        if (adapter.getFooterList() != null && !adapter.getFooterList().contains(progressView)) {
+            int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 50, getResources().getDisplayMetrics());
+            ViewGroup.LayoutParams lp = progressView.getLayoutParams();
+            if (((LinearLayoutManager) getLayoutManager()).getOrientation() == LinearLayoutManager.VERTICAL) {
+                lp.width = getWidth();
+                lp.height = size;
+                progressView.setLayoutParams(lp);
+            } else {
+                lp.width = size;
+                lp.height = getHeight();
+            }
+            progressView.setLayoutParams(lp);
+            adapter.addFooterView(progressView, adapter.getFooterSize());
         }
     }
 
-    @Override
-    public void setLayoutManager(RecyclerView.LayoutManager layout) {
-        if (layout instanceof LinearLayoutManager) {
-            super.setLayoutManager(layout);
-        } else {
-            throw new RuntimeException("Unsupported LayoutManager used. Valid one is LinearLayoutManager！");
-        }
+    private void hideProgress() {
+        ((RecyclerAdapter) getAdapter()).removeFooterView(progressView);
     }
 
     private class LoadOnScrollListener extends RecyclerView.OnScrollListener {
@@ -122,21 +134,10 @@ public class LoadRecyclerView extends YRecyclerView {
             if (totalItemCount > visibleItemCount && lastVisibleItem >= totalItemCount - 2) {
                 if (!disableLoad && canLoad && onLoadListener != null && !isLoading) {
                     isLoading = true;
-                    progressView.setVisibility(VISIBLE);
+                    showProgress();
                     onLoadListener.onLoad();
                 }
             }
-        }
-    }
-
-    private class ExtraLinearLayoutManager extends LinearLayoutManager {
-        private ExtraLinearLayoutManager(Context context) {
-            super(context);
-        }
-
-        @Override
-        protected int getExtraLayoutSpace(RecyclerView.State state) {
-            return super.getExtraLayoutSpace(state) + extraLayoutSpace;
         }
     }
 

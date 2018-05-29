@@ -1,9 +1,11 @@
 package com.wtuadn.yrecyclerview;
 
+import android.support.annotation.NonNull;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,13 +16,10 @@ import static android.support.v7.widget.RecyclerView.ViewHolder;
 /**
  * Created by wtuadn on 15-12-22.
  */
-public abstract class RecyclerAdapter extends Adapter {
+public abstract class RecyclerAdapter<T, VH extends ViewHolder> extends Adapter {
+    private static final int BASE_HEADER_FOOTER_TYPE = 100000;
 
-    public abstract int getNormalItemCount();
-
-    protected RecyclerView recyclerView;
     protected RecyclerItemListener recyclerItemListener;
-
     private List<View> headerList;
     private List<View> footerList;
     protected int headerSize;
@@ -31,6 +30,14 @@ public abstract class RecyclerAdapter extends Adapter {
         footerSize = 0;
         if (headerList != null) headerList.clear();
         if (footerList != null) footerList.clear();
+    }
+
+    private boolean isHeaderPosition(int position) {
+        return position > -1 && position < headerSize;
+    }
+
+    private boolean isFooterPosition(int position) {
+        return position >= headerSize + getNormalItemCount() && position < getItemCount();
     }
 
     public final int getHeaderSize() {
@@ -76,9 +83,6 @@ public abstract class RecyclerAdapter extends Adapter {
         if (notify) {
             notifyItemInserted(position);
         }
-        if (position == 0 && recyclerView != null) {
-            recyclerView.scrollToPosition(0);
-        }
     }
 
     public final void addFooterView(View view) {
@@ -107,7 +111,7 @@ public abstract class RecyclerAdapter extends Adapter {
     public final void removeHeaderView(View view) {
         if (headerList != null) {
             int position = headerList.indexOf(view);
-            if (position > -1 && position < headerSize) {
+            if (isHeaderPosition(position)) {
                 headerList.remove(view);
                 headerSize = headerList.size();
                 notifyItemRemoved(position);
@@ -117,7 +121,7 @@ public abstract class RecyclerAdapter extends Adapter {
 
     public final void removeHeaderView(int position) {
         if (headerList != null) {
-            if (position > -1 && position < headerSize) {
+            if (isHeaderPosition(position)) {
                 headerList.remove(position);
                 headerSize = headerList.size();
                 notifyItemRemoved(position);
@@ -163,78 +167,62 @@ public abstract class RecyclerAdapter extends Adapter {
     }
 
     @Override
-    public int getItemCount() {
+    public final int getItemCount() {
         return headerSize + getNormalItemCount() + footerSize;
     }
 
     @Override
-    public int getItemViewType(int position) {
-        if (position < headerSize) {
-            return 1;//header
-        } else if (position >= headerSize + getNormalItemCount()) {
-            return -1;//footer
+    public final int getItemViewType(int position) {
+        if (isHeaderPosition(position)) {
+            return BASE_HEADER_FOOTER_TYPE + headerList.get(position).hashCode();//header
+        } else if (isFooterPosition(position)) {
+            return BASE_HEADER_FOOTER_TYPE + footerList.get(position - headerSize - getNormalItemCount()).hashCode();//footer
         } else {
-            return 0;//normal
+            return getNormalItemViewType(position);//normal
         }
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == 1) {
-            return new HeaderViewHolder(new FrameLayout(parent.getContext()));
-        } else if (viewType == -1) {
-            return new FooterViewHolder(new FrameLayout(parent.getContext()));
-        }
-        return null;
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder viewHolder, int position) {
-        if (viewHolder instanceof HeaderViewHolder) {
-            if (position < 0 || position >= headerSize) return;
-            View headerView = headerList.get(position);
-            if (headerView.getParent() != null)
-                ((ViewGroup) headerView.getParent()).removeView(headerView);
-            ((ViewGroup) viewHolder.itemView).removeAllViews();
-            ((ViewGroup) viewHolder.itemView).addView(headerView);
-        } else if (viewHolder instanceof FooterViewHolder) {
-            if (position < 0 || position - headerSize - getNormalItemCount() >= footerSize) return;
-            View footerView = footerList.get(position - headerSize - getNormalItemCount());
-            if (footerView.getParent() != null)
-                ((ViewGroup) footerView.getParent()).removeView(footerView);
-            ((ViewGroup) viewHolder.itemView).removeAllViews();
-            ((ViewGroup) viewHolder.itemView).addView(footerView);
-        } else if (viewHolder != null) {
-            if (recyclerItemListener != null) {
-                if (recyclerItemListener.clickable) {
-                    viewHolder.itemView.setOnClickListener(recyclerItemListener);
-                } else {
-                    viewHolder.itemView.setOnClickListener(null);
+    public final ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (headerList != null) {
+            for (View view : headerList) {
+                if (BASE_HEADER_FOOTER_TYPE + view.hashCode() == viewType) {
+                    return new HeaderFooterViewHolder(view);
                 }
-                if (recyclerItemListener.longClickable) {
-                    viewHolder.itemView.setOnLongClickListener(recyclerItemListener);
-                } else {
-                    viewHolder.itemView.setOnLongClickListener(null);
-                }
-                if (recyclerItemListener.createContextMenuable) {
-                    viewHolder.itemView.setOnCreateContextMenuListener(recyclerItemListener);
-                } else {
-                    viewHolder.itemView.setOnCreateContextMenuListener(null);
-                }
-            } else {
-                viewHolder.itemView.setOnClickListener(null);
-                viewHolder.itemView.setOnLongClickListener(null);
-                viewHolder.itemView.setOnCreateContextMenuListener(null);
             }
         }
+        if (footerList != null) {
+            for (View view : footerList) {
+                if (BASE_HEADER_FOOTER_TYPE + view.hashCode() == viewType) {
+                    return new HeaderFooterViewHolder(view);
+                }
+            }
+        }
+        return onCreateNormalViewHolder(parent, viewType);
     }
+
+    @Override
+    public final void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
+        if (viewHolder instanceof RecyclerAdapter.HeaderFooterViewHolder) return;
+        onBindNormalViewHolder((VH) viewHolder, position);
+    }
+
+    public abstract T getItem(int position);
+
+    public abstract int getNormalItemCount();
+
+    public int getNormalItemViewType(int position) {
+        return 0;
+    }
+
+    @NonNull
+    protected abstract VH onCreateNormalViewHolder(@NonNull ViewGroup parent, int viewType);
+
+    protected abstract void onBindNormalViewHolder(@NonNull VH viewHolder, int position);
 
 
     public final void notifyNormalItemInserted(int position) {
         notifyItemInserted(headerSize + position);
-        if (position == 0 && recyclerView != null) {
-            recyclerView.scrollToPosition(0);
-        }
     }
 
     public final void notifyNormalItemRemoved(int position) {
@@ -249,24 +237,41 @@ public abstract class RecyclerAdapter extends Adapter {
         notifyItemChanged(headerSize + position);
     }
 
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (layoutManager instanceof GridLayoutManager) {
+            final GridLayoutManager gridLayoutManager = (GridLayoutManager) layoutManager;
+            final GridLayoutManager.SpanSizeLookup oldLookup = gridLayoutManager.getSpanSizeLookup();
+            gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    if (isHeaderPosition(position) || isFooterPosition(position)) {
+                        return gridLayoutManager.getSpanCount();
+                    } else if (oldLookup != null) {
+                        return oldLookup.getSpanSize(position);
+                    }
+                    return 1;
+                }
+            });
+            gridLayoutManager.setSpanCount(gridLayoutManager.getSpanCount());
+        }
+    }
 
-    private class HeaderViewHolder extends ViewHolder {
-        HeaderViewHolder(View itemView) {
-            super(itemView);
-            if (itemView.getLayoutParams() == null) {
-                itemView.setLayoutParams(new RecyclerView.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+    @Override
+    public void onViewAttachedToWindow(@NonNull ViewHolder holder) {
+        int position = holder.getLayoutPosition();
+        if (isHeaderPosition(position) || isFooterPosition(position)) {
+            ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();
+            if (lp != null && lp instanceof StaggeredGridLayoutManager.LayoutParams) {
+                ((StaggeredGridLayoutManager.LayoutParams) lp).setFullSpan(true);
             }
         }
     }
 
-    private class FooterViewHolder extends ViewHolder {
-        FooterViewHolder(View itemView) {
+    private class HeaderFooterViewHolder extends ViewHolder {
+        private HeaderFooterViewHolder(View itemView) {
             super(itemView);
-            if (itemView.getLayoutParams() == null) {
-                itemView.setLayoutParams(new RecyclerView.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            }
         }
     }
 }

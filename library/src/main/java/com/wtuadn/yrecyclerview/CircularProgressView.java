@@ -10,6 +10,8 @@ import android.widget.ImageView;
  * Created by wtuadn on 2017/8/31.
  */
 public class CircularProgressView extends ImageView {
+    public static int[] DEFAULT_COLORS;
+
     private CircularProgressDrawable progressDrawable;
 
     public CircularProgressDrawable getProgressDrawable() {
@@ -23,7 +25,8 @@ public class CircularProgressView extends ImageView {
     public CircularProgressView(Context context, AttributeSet attrs) {
         super(context, attrs);
         progressDrawable = new CircularProgressDrawable(getContext());
-        progressDrawable.setColorSchemeColors(0xfff40050);
+        if (DEFAULT_COLORS == null) progressDrawable.setColorSchemeColors(0xfff40050);
+        else progressDrawable.setColorSchemeColors(DEFAULT_COLORS);
         progressDrawable.setStyle(CircularProgressDrawable.LARGE);
         progressDrawable.setProgressRotation(1f);
         progressDrawable.setStartEndTrim(0f, 0.9f);

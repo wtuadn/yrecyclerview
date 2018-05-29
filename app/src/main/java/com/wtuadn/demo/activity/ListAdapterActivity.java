@@ -2,7 +2,9 @@ package com.wtuadn.demo.activity;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
@@ -42,13 +44,14 @@ public class ListAdapterActivity extends AppCompatActivity implements LoadOrRefr
     }
 
     private void initToolbar() {
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.app_name);
         toolbar.getMenu().add(0, 0, 0, "添加header").setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
         toolbar.getMenu().add(0, 1, 0, "删除header").setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
         toolbar.getMenu().add(0, 2, 0, "添加footer").setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
         toolbar.getMenu().add(0, 3, 0, "删除footer").setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
         toolbar.getMenu().add(0, 4, 0, "清空列表").setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
+        toolbar.getMenu().add(0, 5, 0, "切换方向").setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -76,6 +79,10 @@ public class ListAdapterActivity extends AppCompatActivity implements LoadOrRefr
                     case 4:
                         myAdapter.lists.clear();
                         myAdapter.notifyDataSetChanged();
+                        break;
+                    case 5:
+                        LinearLayoutManager layoutManager = (LinearLayoutManager) lor.getLoadRecyclerView().getLayoutManager();
+                        layoutManager.setOrientation(1 - layoutManager.getOrientation());
                 }
                 return true;
             }
@@ -83,10 +90,10 @@ public class ListAdapterActivity extends AppCompatActivity implements LoadOrRefr
     }
 
     private void initLOR() {
-        lor = (LoadOrRefreshView) findViewById(R.id.lor);
+        lor = findViewById(R.id.lor);
         lor.setOnLORListener(this);
         LoadRecyclerView loadRecyclerView = lor.getLoadRecyclerView();
-        loadRecyclerView.setColorSchemeColors(Color.RED);
+        loadRecyclerView.setColorSchemeColors(Color.BLUE);
         myAdapter = new MyAdapter(new ArrayList<GoodsBean>());
         loadRecyclerView.setAdapter(myAdapter);
 
@@ -121,16 +128,16 @@ public class ListAdapterActivity extends AppCompatActivity implements LoadOrRefr
         recyclerItemListener.longClickable = false;//长按监听与上下文菜单冲突，不能同时设置
         recyclerItemListener.createContextMenuable = true;
         loadRecyclerView.setRecyclerItemListener(recyclerItemListener);
+        lor.autoRefresh();//自动刷新
 
         TextView emptyView = new TextView(this);
         emptyView.setText("EmptyView");
         emptyView.setTextColor(Color.RED);
         emptyView.setTextSize(30);
         emptyView.setGravity(Gravity.CENTER);
-        emptyView.setMinimumHeight(1000);
+        emptyView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         loadRecyclerView.registerEmptyView(emptyView, true);//设置数据为空时的提示view
 
-        lor.autoRefresh();//自动刷新
     }
 
     @Override
@@ -149,6 +156,7 @@ public class ListAdapterActivity extends AppCompatActivity implements LoadOrRefr
                 myAdapter.lists.addAll(dataList);
                 myAdapter.notifyDataSetChanged();
                 lor.finishLOR();
+                lor.getLoadRecyclerView().setCanLoad(true);
             }
         }, 1000);
     }
@@ -170,42 +178,35 @@ public class ListAdapterActivity extends AppCompatActivity implements LoadOrRefr
                 myAdapter.notifyItemRangeInserted(start, dataList.size());
                 lor.finishLOR();
                 if (myAdapter.lists.size() >= 45) {
-                    //加载了全部数据关闭上拉加载，要在finishLOR方法之后调用
+                    //加载了全部数据关闭上拉加载
                     lor.getLoadRecyclerView().setCanLoad(false);
                 }
             }
         }, 1000);
     }
 
-    private class MyAdapter extends RecyclerListAdapter<GoodsBean> {
+    private class MyAdapter extends RecyclerListAdapter<GoodsBean, MyAdapter.Holder> {
 
         public MyAdapter(List<GoodsBean> lists) {
             super(lists);
         }
 
+        @NonNull
         @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            RecyclerView.ViewHolder vh = super.onCreateViewHolder(parent, viewType);
-            if (vh == null) {
-                vh = new Holdler(new Button(parent.getContext()));
-            }
-            return vh;
+        protected Holder onCreateNormalViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new Holder(new Button(parent.getContext()));
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
-            super.onBindViewHolder(viewHolder, position);
-            if (viewHolder instanceof Holdler) {
-                final Holdler holdler = (Holdler) viewHolder;
-                final GoodsBean bean = getItem(position);
-                holdler.button.setText(bean.getName());
-            }
+        public void onBindNormalViewHolder(@NonNull Holder viewHolder, int position) {
+            final GoodsBean bean = getItem(position);
+            viewHolder.button.setText(bean.getName());
         }
 
-        private class Holdler extends RecyclerView.ViewHolder {
+        class Holder extends RecyclerView.ViewHolder {
             private Button button;
 
-            public Holdler(Button itemView) {
+            Holder(Button itemView) {
                 super(itemView);
                 button = itemView;
             }

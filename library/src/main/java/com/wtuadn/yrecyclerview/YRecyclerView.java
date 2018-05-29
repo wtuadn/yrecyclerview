@@ -52,7 +52,6 @@ public class YRecyclerView extends RecyclerView {
         super.setAdapter(adapter);
         if (adapter != null) {
             adapter.registerAdapterDataObserver(innerDataObserver);
-            ((RecyclerAdapter) adapter).recyclerView = this;
             ((RecyclerAdapter) adapter).recyclerItemListener = recyclerItemListener;
         }
 

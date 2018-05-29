@@ -6,10 +6,10 @@ import android.support.v7.widget.RecyclerView;
 /**
  * Created by wtu on 15/12/29.
  */
-public abstract class RecyclerCursorAdapter<T> extends RecyclerAdapter {
+public abstract class RecyclerCursorAdapter<T, VH extends RecyclerView.ViewHolder> extends RecyclerAdapter<T, VH> {
     protected Cursor mCursor;
 
-    public Cursor getmCursor() {
+    public Cursor getCursor() {
         return mCursor;
     }
 
@@ -17,8 +17,6 @@ public abstract class RecyclerCursorAdapter<T> extends RecyclerAdapter {
     public int getNormalItemCount() {
         return mCursor.getCount();
     }
-
-    public abstract T getItem(int position);
 
     public void changeCursor(Cursor cursor) {
         Cursor old = swapCursor(cursor);
@@ -36,9 +34,7 @@ public abstract class RecyclerCursorAdapter<T> extends RecyclerAdapter {
         return oldCursor;
     }
 
-    @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
-        super.onBindViewHolder(viewHolder, position);
+    public void moveCursorToPosition(int position) {
         mCursor.moveToPosition(position - headerSize);
     }
 }

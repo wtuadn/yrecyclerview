@@ -9,6 +9,8 @@ import android.util.AttributeSet;
  * Created by wtuadn on 15-11-9.
  */
 public class YSwipeRefreshLayout extends SwipeRefreshLayout {
+    public static int[] DEFAULT_COLORS = {Color.BLACK, 0xff7fbc41, 0xff586b95, Color.LTGRAY};
+
     private OnRefreshListener mListener;
 
     @Override
@@ -26,7 +28,7 @@ public class YSwipeRefreshLayout extends SwipeRefreshLayout {
 
     public YSwipeRefreshLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
-        setColorSchemeColors(Color.BLACK, 0xff7fbc41, 0xff586b95, Color.LTGRAY);
+        if (DEFAULT_COLORS != null) setColorSchemeColors(DEFAULT_COLORS);
         setEnabled(false);
     }
 
