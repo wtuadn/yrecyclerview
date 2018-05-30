@@ -7,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.ContextMenu;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,8 +18,8 @@ import android.widget.Toast;
 import com.wtuadn.demo.R;
 import com.wtuadn.demo.bean.GoodsBean;
 import com.wtuadn.demo.database.DBHelper;
+import com.wtuadn.yrecyclerview.HolderListener;
 import com.wtuadn.yrecyclerview.RecyclerCursorAdapter;
-import com.wtuadn.yrecyclerview.RecyclerItemListener;
 import com.wtuadn.yrecyclerview.YRecyclerView;
 
 /**
@@ -85,27 +84,27 @@ public class CursorAdapterActivity extends AppCompatActivity {
         myAdapter = new MyAdapter();
         recyclerView.setAdapter(myAdapter);
 
-        RecyclerItemListener recyclerItemListener = new RecyclerItemListener() {
+        class ListenerImpl extends HolderListener<MyAdapter.Holder> implements View.OnClickListener, View.OnLongClickListener {
             @Override
-            public void onItemClick(View v, int position) {
+            public void onClick(View v) {
+                int position = HolderListener.getLayoutPosition(v);
                 GoodsBean bean = myAdapter.getItem(position);
                 Toast.makeText(getApplicationContext(), bean.getName(), Toast.LENGTH_SHORT).show();
             }
 
             @Override
-            public boolean onItemLongClick(View v, int position) {
-                onItemClick(v, position);
+            public boolean onLongClick(View v) {
+                onClick(v);
                 return true;
             }
 
             @Override
-            public void onItemCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo, int position) {
+            public void onHolderAttach(MyAdapter.Holder holder) {
+                holder.button.setOnClickListener(this);
+                holder.button.setOnLongClickListener(this);
             }
-        };
-        recyclerItemListener.clickable = true;
-        recyclerItemListener.longClickable = true;//长按监听与上下文菜单冲突，不能同时设置
-        recyclerItemListener.createContextMenuable = false;
-        recyclerView.setRecyclerItemListener(recyclerItemListener);
+        }
+        recyclerView.addOnChildAttachStateChangeListener(new ListenerImpl());
     }
 
     private class MyAdapter extends RecyclerCursorAdapter<GoodsBean, MyAdapter.Holder> {

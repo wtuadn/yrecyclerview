@@ -19,7 +19,6 @@ import static android.support.v7.widget.RecyclerView.ViewHolder;
 public abstract class RecyclerAdapter<T, VH extends ViewHolder> extends Adapter {
     private static final int BASE_HEADER_FOOTER_TYPE = 100000;
 
-    protected RecyclerItemListener recyclerItemListener;
     private List<View> headerList;
     private List<View> footerList;
     protected int headerSize;

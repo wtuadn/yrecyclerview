@@ -18,8 +18,8 @@ import android.widget.Toast;
 
 import com.wtuadn.demo.R;
 import com.wtuadn.demo.bean.GoodsBean;
+import com.wtuadn.yrecyclerview.HolderListener;
 import com.wtuadn.yrecyclerview.LoadRecyclerView;
-import com.wtuadn.yrecyclerview.RecyclerItemListener;
 import com.wtuadn.yrecyclerview.RecyclerListAdapter;
 import com.wtuadn.yrecyclerview.lor.LoadOrRefreshView;
 
@@ -97,20 +97,17 @@ public class ListAdapterActivity extends AppCompatActivity implements LoadOrRefr
         myAdapter = new MyAdapter(new ArrayList<GoodsBean>());
         loadRecyclerView.setAdapter(myAdapter);
 
-        RecyclerItemListener recyclerItemListener = new RecyclerItemListener() {
+        class ListenerImpl extends HolderListener<MyAdapter.Holder> implements View.OnClickListener, View.OnCreateContextMenuListener {
             @Override
-            public void onItemClick(View v, int position) {
+            public void onClick(View v) {
+                int position = HolderListener.getLayoutPosition(v);
                 GoodsBean bean = myAdapter.getItem(position);
                 Toast.makeText(getApplicationContext(), bean.getName(), Toast.LENGTH_SHORT).show();
             }
 
             @Override
-            public boolean onItemLongClick(View v, int position) {
-                return super.onItemLongClick(v, position);
-            }
-
-            @Override
-            public void onItemCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo, int position) {
+            public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+                int position = ((RecyclerView.LayoutParams) v.getLayoutParams()).getViewLayoutPosition();
                 MenuItem.OnMenuItemClickListener listener = new MenuItem.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
@@ -123,11 +120,14 @@ public class ListAdapterActivity extends AppCompatActivity implements LoadOrRefr
                 menu.add(0, 2, 0, bean.getName() + "   菜单2").setOnMenuItemClickListener(listener);
                 menu.add(0, 3, 0, bean.getName() + "   菜单3").setOnMenuItemClickListener(listener);
             }
-        };
-        recyclerItemListener.clickable = true;
-        recyclerItemListener.longClickable = false;//长按监听与上下文菜单冲突，不能同时设置
-        recyclerItemListener.createContextMenuable = true;
-        loadRecyclerView.setRecyclerItemListener(recyclerItemListener);
+
+            @Override
+            public void onHolderAttach(MyAdapter.Holder holder) {
+                holder.button.setOnClickListener(this);
+                holder.button.setOnCreateContextMenuListener(this);
+            }
+        }
+        loadRecyclerView.addOnChildAttachStateChangeListener(new ListenerImpl());
         lor.autoRefresh();//自动刷新
 
         TextView emptyView = new TextView(this);

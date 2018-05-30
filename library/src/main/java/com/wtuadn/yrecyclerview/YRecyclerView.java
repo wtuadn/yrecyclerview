@@ -12,22 +12,11 @@ import java.util.List;
  * Created by wtuadn on 15-12-28.
  */
 public class YRecyclerView extends RecyclerView {
-    private RecyclerItemListener recyclerItemListener;
     private View emptyView;
     private boolean hasToAdd;
     private EmptyAdapterDataObserver innerDataObserver;
     private List<View> headerList;
     private List<View> footerList;
-
-    public void setRecyclerItemListener(RecyclerItemListener recyclerItemListener) {
-        this.recyclerItemListener = recyclerItemListener;
-        if (recyclerItemListener != null) {
-            recyclerItemListener.recyclerView = this;
-        }
-        if (getAdapter() != null) {
-            ((RecyclerAdapter) getAdapter()).recyclerItemListener = recyclerItemListener;
-        }
-    }
 
     public YRecyclerView(Context context) {
         this(context, null);
@@ -52,7 +41,6 @@ public class YRecyclerView extends RecyclerView {
         super.setAdapter(adapter);
         if (adapter != null) {
             adapter.registerAdapterDataObserver(innerDataObserver);
-            ((RecyclerAdapter) adapter).recyclerItemListener = recyclerItemListener;
         }
 
         checkIfEmpty();
