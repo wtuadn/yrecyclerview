@@ -25,7 +25,7 @@ public class CircularProgressView extends ImageView {
     public CircularProgressView(Context context, AttributeSet attrs) {
         super(context, attrs);
         progressDrawable = new CircularProgressDrawable(getContext());
-        if (DEFAULT_COLORS == null) progressDrawable.setColorSchemeColors(0xfff40050);
+        if (DEFAULT_COLORS == null) progressDrawable.setColorSchemeColors(0xffF4B83F);
         else progressDrawable.setColorSchemeColors(DEFAULT_COLORS);
         progressDrawable.setStyle(CircularProgressDrawable.LARGE);
         progressDrawable.setProgressRotation(1f);

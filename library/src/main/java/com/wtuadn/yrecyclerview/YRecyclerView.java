@@ -28,7 +28,11 @@ public class YRecyclerView extends RecyclerView {
 
     @Override
     public void setAdapter(Adapter adapter) {
-        if (adapter != null && !(adapter instanceof RecyclerAdapter)) {
+        if (adapter == null) {
+            super.setAdapter(null);
+            return;
+        }
+        if (!(adapter instanceof RecyclerAdapter)) {
             throw new RuntimeException("Unsupported Adapter used. Valid one is RecyclerAdapter！");
         }
         if (innerDataObserver == null) {
@@ -39,9 +43,7 @@ public class YRecyclerView extends RecyclerView {
             oldAdapter.unregisterAdapterDataObserver(innerDataObserver);
         }
         super.setAdapter(adapter);
-        if (adapter != null) {
-            adapter.registerAdapterDataObserver(innerDataObserver);
-        }
+        adapter.registerAdapterDataObserver(innerDataObserver);
 
         checkIfEmpty();
     }
@@ -72,7 +74,7 @@ public class YRecyclerView extends RecyclerView {
                         adapter.addFooterView(emptyView, false);
                         adapter.notifyDataSetChanged();
                     }
-                } else if (headerList.size() > 0 || footerList.size() > 0) {
+                } else if (adapter.getFooterList().contains(emptyView)) {
                     adapter.clearHeaderFooter();
                     for (int i = 0; i < headerList.size(); i++) {
                         adapter.addHeaderView(headerList.get(i), false);
@@ -86,8 +88,8 @@ public class YRecyclerView extends RecyclerView {
                 }
             } else {
                 setVisibility(emptyViewVisible ? GONE : VISIBLE);
+                emptyView.setVisibility(emptyViewVisible ? VISIBLE : GONE);
             }
-            emptyView.setVisibility(emptyViewVisible ? VISIBLE : GONE);
         }
     }
 

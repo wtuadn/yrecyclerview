@@ -2,6 +2,7 @@ package com.wtuadn.yrecyclerview;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewParent;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -38,17 +39,23 @@ public abstract class HolderListener<VH extends RecyclerView.ViewHolder> impleme
 
     public abstract void onHolderAttach(VH holder);
 
-    public static int getLayoutPosition(View view){
-        while (!(view.getParent() instanceof RecyclerView)){
-            view = (View) view.getParent();
+    public static int getLayoutPosition(View view) {
+        ViewParent parent = view.getParent();
+        while (true) {
+            if (parent instanceof RecyclerView)
+                return ((RecyclerView) parent).getChildLayoutPosition(view);
+            if (parent == null) return -1;
+            parent = parent.getParent();
         }
-        return ((RecyclerView) view.getParent()).getChildLayoutPosition(view);
     }
 
-    public static int getAdapterPosition(View view){
-        while (!(view.getParent() instanceof RecyclerView)){
-            view = (View) view.getParent();
+    public static int getAdapterPosition(View view) {
+        ViewParent parent = view.getParent();
+        while (true) {
+            if (parent instanceof RecyclerView)
+                return ((RecyclerView) parent).getChildAdapterPosition(view);
+            if (parent == null) return -1;
+            parent = parent.getParent();
         }
-        return ((RecyclerView) view.getParent()).getChildAdapterPosition(view);
     }
 }

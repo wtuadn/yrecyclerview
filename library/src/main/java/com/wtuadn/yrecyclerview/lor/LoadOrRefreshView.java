@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.view.ViewGroup;
 
 import com.wtuadn.yrecyclerview.LoadRecyclerView;
 
@@ -47,8 +46,8 @@ public class LoadOrRefreshView extends YSwipeRefreshLayout implements LoadRecycl
         loadRecyclerView.setLoadListener(this);
         loadRecyclerView.setLayoutManager(new ExtraLinearLayoutManager(getContext()));
         setOnRefreshListener(this);
-        addView(loadRecyclerView, new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        addView(loadRecyclerView, new LayoutParams(
+                LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
     }
 
     /**

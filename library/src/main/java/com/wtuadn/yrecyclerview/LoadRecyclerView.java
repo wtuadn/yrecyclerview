@@ -69,7 +69,7 @@ public class LoadRecyclerView extends YRecyclerView {
     }
 
     @Override
-    public void setLayoutManager(final RecyclerView.LayoutManager layoutManager) {
+    public void setLayoutManager(final LayoutManager layoutManager) {
         if (layoutManager instanceof GridLayoutManager) {
             final GridLayoutManager gridLayoutManager = (GridLayoutManager) layoutManager;
             final GridLayoutManager.SpanSizeLookup oldLookup = gridLayoutManager.getSpanSizeLookup();
@@ -120,7 +120,7 @@ public class LoadRecyclerView extends YRecyclerView {
         ((RecyclerAdapter) getAdapter()).removeFooterView(progressView);
     }
 
-    private class LoadOnScrollListener extends RecyclerView.OnScrollListener {
+    private class LoadOnScrollListener extends OnScrollListener {
         @Override
         public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
         }
