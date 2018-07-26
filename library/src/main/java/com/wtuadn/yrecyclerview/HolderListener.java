@@ -44,7 +44,7 @@ public abstract class HolderListener<VH extends RecyclerView.ViewHolder> impleme
         while (true) {
             if (parent instanceof RecyclerView)
                 return ((RecyclerView) parent).getChildLayoutPosition(view);
-            if (parent == null) return -1;
+            if (parent == null || !(parent instanceof View)) return -1;
             view = (View) parent;
             parent = parent.getParent();
         }
@@ -55,7 +55,7 @@ public abstract class HolderListener<VH extends RecyclerView.ViewHolder> impleme
         while (true) {
             if (parent instanceof RecyclerView)
                 return ((RecyclerView) parent).getChildAdapterPosition(view);
-            if (parent == null) return -1;
+            if (parent == null || !(parent instanceof View)) return -1;
             view = (View) parent;
             parent = parent.getParent();
         }
